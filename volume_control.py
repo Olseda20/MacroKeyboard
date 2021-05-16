@@ -7,6 +7,11 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 from pycaw.pycaw import AudioUtilities
 
+
+from pynput.keyboard import Key, Controller #https://pypi.org/project/pynput/
+
+
+
 import serial
 from time import sleep
 
@@ -75,11 +80,12 @@ class AudioController(object):
 
 
 def main():
-    prevData = [0,0,0,0,0]
+    prevPot = [0,0,0,0,0]
     Spotify_controller = AudioController('Spotify.exe')
     brave_controller = AudioController('brave.exe')
     discord_controller = AudioController('Discord.exe')
     csgo_controller = AudioController('csgo.exe')
+    steam_controller = AudioController('steam.exe')
 
     devices = AudioUtilities.GetSpeakers()
     interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
@@ -87,37 +93,40 @@ def main():
     master = cast(interface, POINTER(IAudioEndpointVolume))
 
     while True:
-        data = (ser.readline(35).rstrip()).decode()
-        
         try:
-            
+            data = (ser.readline(66).rstrip()).decode()
+            # print(data)
             dataEval = eval('[' + data + ']')[0]
             
+            #potentiometer and switch data
+            pot, sw = dataEval
+            # print(pot)
 
-            for i in range(4):
-                if dataEval[i] - 0.01 <= prevData[i] <= dataEval[i] + 0.01:
+            for i in range(len(pot)):
+                if pot[i] - 0.01 <= prevPot[i] <= pot[i] + 0.01:
                     pass
                 else:
-                    if dataEval[i] <= 0.005:
-                        dataEval[i] == 0
+                    if pot[i] <= 0.005:
+                        pot[i] == 0
                     if i == 0:
-                        masterVal = -78*exp(-3.97*dataEval[i])+1.452
+                        masterVal = -78*exp(-3.97*pot[i])+1.452
                         master.SetMasterVolumeLevel(masterVal, None)
                     elif i == 1:
-                        brave_controller.set_volume(dataEval[i])
-                        csgo_controller.set_volume(dataEval[i]) 
+                        print(pot[i])
+                        brave_controller.set_volume(pot[i])
+                        csgo_controller.set_volume(pot[i]) 
                     elif i == 2:
-                        Spotify_controller.set_volume(dataEval[i])
+                        Spotify_controller.set_volume(pot[i])
                         pass
                     elif i == 3:
-                        discord_controller.set_volume(dataEval[i])  
+                        # discord_controller.set_volume(pot[i])  
+                        steam_controller.set_volume(pot[i])
                         pass                    
                     elif i == 4:
-                        
                         pass
                     else:
                         pass
-                    prevData = dataEval
+                    prevPot = pot
 
         except:
             pass
