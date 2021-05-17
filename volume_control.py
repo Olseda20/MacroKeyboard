@@ -16,8 +16,8 @@ import serial
 from time import sleep
 
 from math import log, exp
-ser = serial.Serial('COM3', 115200, timeout=0.05)
-
+ser = serial.Serial('COM3', 115200, timeout=None)
+# ser = serial.Serial('COM3', 115200, timeout=None)
 
 class AudioController(object):
     def __init__(self, process_name):
@@ -92,42 +92,43 @@ def main():
 
     master = cast(interface, POINTER(IAudioEndpointVolume))
 
+    print('start')
     while True:
         try:
-            data = (ser.readline(66).rstrip()).decode()
-            # print(data)
+
+            #see if i can figure out a way to wait for serial data instead of processing every single piece of data
+            # data = (ser.readline(66).rstrip()).decode()
+            # print('reading')
+            data = (ser.readline().rstrip()).decode()
+            # print('data')
             dataEval = eval('[' + data + ']')[0]
-            
+            print(dataEval)
             #potentiometer and switch data
             pot, sw = dataEval
             # print(pot)
 
             for i in range(len(pot)):
-                if pot[i] - 0.01 <= prevPot[i] <= pot[i] + 0.01:
+                if pot[i] <= 0.005:
+                    pot[i] == 0
+                if i == 0:
+                    masterVal = -78*exp(-3.97*pot[i])+1.452
+                    master.SetMasterVolumeLevel(masterVal, None)
+                elif i == 1:
+                    print(pot[i])
+                    brave_controller.set_volume(pot[i])
+                    csgo_controller.set_volume(pot[i]) 
+                elif i == 2:
+                    Spotify_controller.set_volume(pot[i])
+                    pass
+                elif i == 3:
+                    # discord_controller.set_volume(pot[i])  
+                    steam_controller.set_volume(pot[i])
+                    pass                    
+                elif i == 4:
                     pass
                 else:
-                    if pot[i] <= 0.005:
-                        pot[i] == 0
-                    if i == 0:
-                        masterVal = -78*exp(-3.97*pot[i])+1.452
-                        master.SetMasterVolumeLevel(masterVal, None)
-                    elif i == 1:
-                        print(pot[i])
-                        brave_controller.set_volume(pot[i])
-                        csgo_controller.set_volume(pot[i]) 
-                    elif i == 2:
-                        Spotify_controller.set_volume(pot[i])
-                        pass
-                    elif i == 3:
-                        # discord_controller.set_volume(pot[i])  
-                        steam_controller.set_volume(pot[i])
-                        pass                    
-                    elif i == 4:
-                        pass
-                    else:
-                        pass
-                    prevPot = pot
-
+                    pass
+                
         except:
             pass
 
