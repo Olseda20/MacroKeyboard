@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['volume_control.py'],
-             pathex=['C:\\MacrosBoard\\ESP32\\Micropython'],
+             pathex=['C:\\MacrosBoard\\MacroKeyboard'],
              binaries=[],
              datas=[],
              hiddenimports=[],

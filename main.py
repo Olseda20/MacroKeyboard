@@ -7,7 +7,6 @@
 from machine import Pin, ADC, UART
 import time 
 import math
-import ujson 
 
 uart = UART(1, 115200)                                      # init with given baudrate
 uart.init(115200, bits=8, parity=None, stop=1, txbuf=66)    # init with given parameters
@@ -17,13 +16,13 @@ if __name__ == "__main__":
     
     pot_max_val = 4095
 
-    potPins = [34,35,32,33]
+    potPins = [34,36,32,33,39]
     potLen = len(potPins)
     pot = potVal = prevPotVal =[0] * potLen
 
-    swPins = [23,22,21,19,18,5,4,26,27,14]
+    swPins = [23,21,18,4,27,22,19,5,26,14]
     swLen = len(swPins)
-    sw = swVal = prevSwVal = [0] * swLen
+    sw = swVal = prevSwVal = swSend = [0] * swLen
 
 
     while True:
@@ -40,30 +39,34 @@ if __name__ == "__main__":
                 change = 1
                 if currPotVal < 0.01:
                     potVal[i] == 0
+                if currPotVal < 0.988:
+                    potVal[i] == 1
                 potVal[i] = currPotVal
-        # print(potVal)
 
-        #Process the Key Data
+        # Process the Key Data
+        swSend = [0] * swLen
         for i in range(swLen):
-            sw = Pin(swPins[i], Pin.IN, Pin.PULL_UP)
-            currSwVal = sw.value()
+            # print('sw'+str(swVal))
+            sw[i] = Pin(swPins[i], Pin.IN, Pin.PULL_UP)
+            swVal[i] = sw[i].value()
+            if swVal[i] != 1:
+                swVal[i] = 1
+            else :
+                swVal[i] = 0
             
-            #finding the dropping edve (since it is active low)
-            if prevSwVal == 1 and currSwVal == 0: 
+            #sends data only when key is pressed
+            if swVal[i] == 1 and prevSwVal[i] == 0:
                 change = 1
-                # set the swVal aray to on only on dropping edge
-                pass
-        # print(swVal)
-        
+                swSend[i] = 1  
+
         ## process the switch data to out everytime a key is pressed 
         if change == 1:    
-            data = [list(potVal), list(swVal)]
+            data = [list(potVal), list(swSend)]
             print(data)
-            uart.write(str(data))
             uart.write('')
 
-            prevPotVal = potVal
-            prevSwVal = swVal
+        prevSwVal = swSend
+        prevPotVal = potVal
 
         time.sleep(0.05)
 

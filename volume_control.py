@@ -10,14 +10,13 @@ from pycaw.pycaw import AudioUtilities
 
 from pynput.keyboard import Key, Controller #https://pypi.org/project/pynput/
 
-
-
 import serial
-from time import sleep
+from time import sleep, time
 
 from math import log, exp
+
+from serial.serialwin32 import Serial
 ser = serial.Serial('COM3', 115200, timeout=None)
-# ser = serial.Serial('COM3', 115200, timeout=None)
 
 class AudioController(object):
     def __init__(self, process_name):
@@ -78,29 +77,50 @@ class AudioController(object):
     #             interface.SetMasterVolume(self.volume, None)
     #             print('Volume raised to', self.volume)  # debug
 
+def initiateAudioController():
+    controller = []
+
+    chan1_1, chan1_2 = 'brave','Twitch'
+    chan2_1, chan2_2 = 'Spotify',''
+    chan3_1, chan3_2 = 'Discord',''
+    chan4_1, chan4_2 = 'csgo',''
+
+    #channel 0 reserved for master volume
+    #could be some kind of for loop for a list in a to create the individual channels
+    
+    #channel 1 (browser?)
+    controller.append(AudioController(chan1_1 + '.exe'))
+    controller.append(AudioController(chan1_2 + '.exe'))
+    #channel 2 (multimedia spotify netflix..)
+    controller.append(AudioController(chan2_1 + '.exe'))
+    controller.append(AudioController(chan2_2 + '.exe'))
+
+    #channel 3 
+    controller.append(AudioController(chan3_1 + '.exe'))
+    controller.append(AudioController(chan3_2 + '.exe'))
+
+    #channel 4 (for games)
+    controller.append(AudioController(chan4_1 + '.exe'))
+    controller.append(AudioController(chan4_2 + '.exe'))
+
+    return controller
 
 def main():
-    prevPot = [0,0,0,0,0]
-    Spotify_controller = AudioController('Spotify.exe')
-    brave_controller = AudioController('brave.exe')
-    discord_controller = AudioController('Discord.exe')
-    csgo_controller = AudioController('csgo.exe')
-    steam_controller = AudioController('steam.exe')
+    controller = initiateAudioController()
 
     devices = AudioUtilities.GetSpeakers()
     interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 
     master = cast(interface, POINTER(IAudioEndpointVolume))
 
+    swPrev = []
+
     print('start')
     while True:
         try:
 
-            #see if i can figure out a way to wait for serial data instead of processing every single piece of data
-            # data = (ser.readline(66).rstrip()).decode()
-            # print('reading')
+            #waiting for serial data
             data = (ser.readline().rstrip()).decode()
-            # print('data')
             dataEval = eval('[' + data + ']')[0]
             print(dataEval)
             #potentiometer and switch data
@@ -108,27 +128,46 @@ def main():
             # print(pot)
 
             for i in range(len(pot)):
-                if pot[i] <= 0.005:
-                    pot[i] == 0
                 if i == 0:
                     masterVal = -78*exp(-3.97*pot[i])+1.452
                     master.SetMasterVolumeLevel(masterVal, None)
                 elif i == 1:
-                    print(pot[i])
-                    brave_controller.set_volume(pot[i])
-                    csgo_controller.set_volume(pot[i]) 
+                    #general media, brave, twitch? 
+                    controller[0].set_volume(pot[i])
+                    controller[1].set_volume(pot[i]) 
                 elif i == 2:
-                    Spotify_controller.set_volume(pot[i])
-                    pass
+                    #Spotify channel other media? (netflix?) 
+                    controller[2].set_volume(pot[i])
+                    controller[3].set_volume(pot[i])
                 elif i == 3:
-                    # discord_controller.set_volume(pot[i])  
-                    steam_controller.set_volume(pot[i])
+                    #Discord channel
+                    controller[4].set_volume(pot[i])
+                    controller[5].set_volume(pot[i])
                     pass                    
                 elif i == 4:
+                    #gaming channel
+                    controller[6].set_volume(pot[i])
+                    controller[7].set_volume(pot[i])
                     pass
                 else:
                     pass
+            
+            # if time_check = 0:
+            #     sw_time_now = time()
+            # for i in range(len(sw)):
+                #process only a keypress per time period?
+                # time_recieved_data 
+                # if sw == swPrev: 
+                    
+                #     time_recieved_data > 1s:
+                # if 
+                #     sw[0] = 
                 
+                #in time period set keypress to activate certain macros, probably 
+
+            #     pass
+            # swPrev = sw
+
         except:
             pass
 
