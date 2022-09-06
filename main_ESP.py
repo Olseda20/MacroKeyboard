@@ -38,7 +38,6 @@ if __name__ == "__main__":
     swLen = len(swPins)
     sw = swVal = prevSwVal = [0] * swLen
 
-
     while True:
         change = 0
 
@@ -57,7 +56,6 @@ if __name__ == "__main__":
                 potVal[i] = currPotVal
         # print(potVal)
 
-
         #Process the Key Data
         for i in range(swLen):
             sw = Pin(swPins[i], Pin.IN, Pin.PULL_UP)
@@ -68,25 +66,16 @@ if __name__ == "__main__":
                 change = 1
                 # set the swVal aray to on only on dropping edge
                 pass
-        
-            
         # print(swVal)
         
         ## process the switch data to out everytime a key is pressed
-        
         if change == 1:    
             data = [list(potVal), list(swVal)]#'[' + str(potVal) + ',' + str(swVal) + ']'
             print(data)
             uart.write(str(data))
             uart.write('')
-
-            
             time.sleep(0.05)
-
             prevPotVal = potVal
             prevSwVal = swVal
-
-        ##if significant change is recorded, update data script else continue looping
-
 
     # print('end')
